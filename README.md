@@ -7,7 +7,7 @@ A **customizable date picker component** for React Native applications. This com
 
 ---
 
-## 📸 Demo Screenshots
+
 
 ## 📸 Demo Screenshots
 
