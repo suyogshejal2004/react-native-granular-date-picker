@@ -1,6 +1,6 @@
 {
   "name": "react-native-granular-date-picker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A sleek and customizable React Native date picker that gives you granular control over day, month, and year selection with a smooth user experience.",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
