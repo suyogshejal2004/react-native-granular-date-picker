@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+// --- Types for Props ---
+import { useState, useEffect, useMemo, useCallback } from 'react'; // React import removed
 import {
   View,
   Text,
@@ -6,16 +7,15 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
-  FlatList,
   type ViewStyle,
   type TextStyle,
+  FlatList,
   type StyleProp,
 } from 'react-native';
 
 // --- Helper Functions ---
 const getDaysInMonth = (year: number, month: number) =>
   new Date(year, month + 1, 0).getDate();
-
 const areDatesEqual = (d1: Date, d2: Date) =>
   d1 &&
   d2 &&
@@ -23,15 +23,7 @@ const areDatesEqual = (d1: Date, d2: Date) =>
   d1.getMonth() === d2.getMonth() &&
   d1.getDate() === d2.getDate();
 
-// --- Helper to merge styles safely ---
-const mergeStyles = <T,>(
-  base: StyleProp<T>,
-  ...extra: StyleProp<T>[]
-): StyleProp<T> => {
-  return [...(Array.isArray(base) ? base : [base]), ...extra].filter(Boolean);
-};
-
-// --- Type for day cell ---
+// --- Type definition for a day object in the grid ---
 type DayObjectType = {
   key: string;
   day?: number;
@@ -52,15 +44,10 @@ const getMonthData = (
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const adjustedFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
   const daysInMonth = getDaysInMonth(year, month);
-
   const gridData: DayObjectType[] = [];
-
-  // Fill placeholders
   for (let i = 0; i < adjustedFirstDay; i++) {
     gridData.push({ key: `ph-${i}`, isPlaceholder: true });
   }
-
-  // Fill actual days
   for (let i = 1; i <= daysInMonth; i++) {
     const currentDate = new Date(year, month, i);
     const dayOfWeek = currentDate.getDay();
@@ -74,11 +61,9 @@ const getMonthData = (
       isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
     });
   }
-
   return gridData;
 };
 
-// --- Props type ---
 export type GranularDatePickerProps = {
   initialDate?: Date;
   minYear?: number;
@@ -92,31 +77,31 @@ export type GranularDatePickerProps = {
   headerTextColor?: string;
   arrowColor?: string;
   fontFamily?: string;
-  containerStyle?: StyleProp<ViewStyle>;
-  selectedDateHeaderStyle?: StyleProp<ViewStyle>;
-  selectedDateHeaderText?: StyleProp<TextStyle>;
-  monthNavigationContainerStyle?: StyleProp<ViewStyle>;
-  monthNavigationTextStyle?: StyleProp<TextStyle>;
-  arrowButtonStyle?: StyleProp<ViewStyle>;
-  arrowIconStyle?: StyleProp<TextStyle>;
-  dayOfWeekContainerStyle?: StyleProp<ViewStyle>;
-  dayOfWeekTextStyle?: StyleProp<TextStyle>;
-  dayContainerStyle?: StyleProp<ViewStyle>;
-  dayTextStyle?: StyleProp<TextStyle>;
-  todayContainerStyle?: StyleProp<ViewStyle>;
-  todayTextStyle?: StyleProp<TextStyle>;
-  selectedDayContainerStyle?: StyleProp<ViewStyle>;
-  selectedDayTextStyle?: StyleProp<TextStyle>;
-  weekendTextStyle?: StyleProp<TextStyle>;
-  cancelButtonStyle?: StyleProp<ViewStyle>;
-  cancelButtonTextStyle?: StyleProp<TextStyle>;
-  okButtonStyle?: StyleProp<ViewStyle>;
-  okButtonTextStyle?: StyleProp<TextStyle>;
-  yearSelectorContainerStyle?: StyleProp<ViewStyle>;
-  yearSelectorButtonStyle?: StyleProp<ViewStyle>;
-  yearSelectorButtonTextStyle?: StyleProp<TextStyle>;
-  selectedYearSelectorButtonStyle?: StyleProp<ViewStyle>;
-  selectedYearSelectorButtonTextStyle?: StyleProp<TextStyle>;
+  containerStyle?: ViewStyle;
+  selectedDateHeaderStyle?: ViewStyle;
+  selectedDateHeaderText?: TextStyle;
+  monthNavigationContainerStyle?: ViewStyle;
+  monthNavigationTextStyle?: TextStyle;
+  arrowButtonStyle?: ViewStyle;
+  arrowIconStyle?: TextStyle;
+  dayOfWeekContainerStyle?: ViewStyle;
+  dayOfWeekTextStyle?: TextStyle;
+  dayContainerStyle?: ViewStyle;
+  dayTextStyle?: TextStyle;
+  todayContainerStyle?: ViewStyle;
+  todayTextStyle?: TextStyle;
+  selectedDayContainerStyle?: ViewStyle;
+  selectedDayTextStyle?: TextStyle;
+  weekendTextStyle?: TextStyle;
+  cancelButtonStyle?: ViewStyle;
+  cancelButtonTextStyle?: TextStyle;
+  okButtonStyle?: ViewStyle;
+  okButtonTextStyle?: TextStyle;
+  yearSelectorContainerStyle?: ViewStyle;
+  yearSelectorButtonStyle?: ViewStyle;
+  yearSelectorButtonTextStyle?: TextStyle;
+  selectedYearSelectorButtonStyle?: ViewStyle;
+  selectedYearSelectorButtonTextStyle?: TextStyle;
 };
 
 // --- Main Component ---
@@ -129,9 +114,9 @@ export const GranularDatePicker = ({
   onCancel,
   primaryColor = '#007AFF',
   secondaryColor = '#E8F0FE',
-  textColor = '#333',
-  headerTextColor = '#333',
-  arrowColor = '#555',
+  textColor = '#333333',
+  headerTextColor = '#333333',
+  arrowColor = '#555555',
   fontFamily = Platform.OS === 'ios' ? 'System' : 'Roboto',
   containerStyle,
   selectedDateHeaderStyle,
@@ -160,7 +145,7 @@ export const GranularDatePicker = ({
   selectedYearSelectorButtonTextStyle,
 }: GranularDatePickerProps) => {
   const { width } = Dimensions.get('window');
-  const ITEM_SIZE = Math.floor((width - 80) / 7);
+  const ITEM_SIZE = useMemo(() => Math.floor((width - 80) / 7), [width]);
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [visibleDate, setVisibleDate] = useState(initialDate);
@@ -170,7 +155,6 @@ export const GranularDatePicker = ({
     () => Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i),
     [minYear, maxYear]
   );
-
   const monthData = useMemo(
     () => getMonthData(visibleDate, selectedDate),
     [visibleDate, selectedDate]
@@ -180,75 +164,88 @@ export const GranularDatePicker = ({
     onSelectDate?.(selectedDate);
   }, [selectedDate, onSelectDate]);
 
+  const handleConfirmPress = () => {
+    onConfirm?.(selectedDate);
+  };
   const changeMonth = (amount: number) => {
     const newDate = new Date(visibleDate);
     newDate.setMonth(newDate.getMonth() + amount);
-    if (newDate.getFullYear() >= minYear && newDate.getFullYear() <= maxYear) {
+    const year = newDate.getFullYear();
+    if (year >= minYear && year <= maxYear) {
       setVisibleDate(newDate);
     }
+  };
+  const handleDayPress = (date: Date) => {
+    setSelectedDate(date);
+  };
+  const handleYearPress = (year: number) => {
+    const newVisibleDate = new Date(visibleDate);
+    newVisibleDate.setFullYear(year);
+    setVisibleDate(newVisibleDate);
+    setViewMode('calendar');
   };
 
   const renderDay = useCallback(
     ({ item }: { item: DayObjectType }) => {
-      let containerStyles = [
+      const containerStyles: (ViewStyle | undefined)[] = [
         styles.dayCell,
         { width: ITEM_SIZE, height: ITEM_SIZE, borderRadius: ITEM_SIZE / 2 },
-        dayContainerStyle,
       ];
-      let textStyles = [
+      if (dayContainerStyle) containerStyles.push(dayContainerStyle);
+
+      const textStyles: (TextStyle | undefined)[] = [
         styles.dayText,
-        { fontFamily, color: textColor },
-        dayTextStyle,
+        { fontFamily },
       ];
+      if (dayTextStyle) textStyles.push(dayTextStyle);
 
-      if (item.isPlaceholder) return <View style={containerStyles} />;
+      if (item.isPlaceholder) {
+        return <View style={containerStyles as StyleProp<ViewStyle>} />;
+      }
 
-      if (item.isWeekend)
-        textStyles = mergeStyles(
-          textStyles,
-          styles.weekendText,
-          weekendTextStyle
-        );
-      if (item.isToday)
-        containerStyles = mergeStyles(
-          containerStyles,
-          styles.todayContainer,
-          { borderColor: primaryColor, backgroundColor: secondaryColor },
-          todayContainerStyle
-        );
-      if (item.isSelected)
-        containerStyles = mergeStyles(
-          containerStyles,
-          styles.selectedDayContainer,
-          { backgroundColor: primaryColor, borderColor: primaryColor },
-          selectedDayContainerStyle
-        );
+      // Set default text color, which might be overridden by other styles
+      textStyles.push({ color: textColor });
 
-      if (item.isToday)
-        textStyles = mergeStyles(textStyles, styles.todayText, todayTextStyle);
-      if (item.isSelected)
-        textStyles = mergeStyles(
-          textStyles,
-          styles.selectedDayText,
-          selectedDayTextStyle
-        );
+      if (item.isWeekend) {
+        if (weekendTextStyle) textStyles.push(weekendTextStyle);
+        else textStyles.push(styles.weekendText);
+      }
+      if (item.isToday) {
+        containerStyles.push(styles.todayContainer, {
+          borderColor: primaryColor,
+          backgroundColor: secondaryColor,
+        });
+        if (todayContainerStyle) containerStyles.push(todayContainerStyle);
+        textStyles.push(styles.todayText);
+        if (todayTextStyle) textStyles.push(todayTextStyle);
+      }
+      if (item.isSelected) {
+        containerStyles.push(styles.selectedDayContainer, {
+          backgroundColor: primaryColor,
+          borderColor: primaryColor,
+        });
+        if (selectedDayContainerStyle)
+          containerStyles.push(selectedDayContainerStyle);
+        textStyles.push(styles.selectedDayText);
+        if (selectedDayTextStyle) textStyles.push(selectedDayTextStyle);
+      }
 
       return (
         <TouchableOpacity
-          onPress={() => item.date && setSelectedDate(item.date)}
+          onPress={() => item.date && handleDayPress(item.date)}
         >
-          <View style={containerStyles}>
-            <Text style={textStyles}>{item.day}</Text>
+          <View style={containerStyles as StyleProp<ViewStyle>}>
+            <Text style={textStyles as StyleProp<TextStyle>}>{item.day}</Text>
           </View>
         </TouchableOpacity>
       );
     },
     [
       ITEM_SIZE,
-      fontFamily,
-      textColor,
       primaryColor,
       secondaryColor,
+      textColor,
+      fontFamily,
       dayContainerStyle,
       dayTextStyle,
       todayContainerStyle,
@@ -267,11 +264,8 @@ export const GranularDatePicker = ({
         keyExtractor={(item) => item.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() =>
-              setVisibleDate(
-                new Date(item, visibleDate.getMonth(), visibleDate.getDate())
-              )
-            }
+            style={styles.yearButtonWrapper}
+            onPress={() => handleYearPress(item)}
           >
             <View
               style={[
@@ -279,9 +273,8 @@ export const GranularDatePicker = ({
                 yearSelectorButtonStyle,
                 item === visibleDate.getFullYear() && {
                   backgroundColor: primaryColor,
+                  ...selectedYearSelectorButtonStyle,
                 },
-                item === visibleDate.getFullYear() &&
-                  selectedYearSelectorButtonStyle,
               ]}
             >
               <Text
@@ -289,9 +282,10 @@ export const GranularDatePicker = ({
                   styles.yearButtonText,
                   { fontFamily },
                   yearSelectorButtonTextStyle,
-                  item === visibleDate.getFullYear() && { color: '#FFF' },
-                  item === visibleDate.getFullYear() &&
-                    selectedYearSelectorButtonTextStyle,
+                  item === visibleDate.getFullYear() && {
+                    color: '#FFF',
+                    ...selectedYearSelectorButtonTextStyle,
+                  },
                 ]}
               >
                 {item}
@@ -301,6 +295,87 @@ export const GranularDatePicker = ({
         )}
       />
     </View>
+  );
+
+  const renderCalendarView = () => (
+    <>
+      <View
+        style={[styles.monthNavigationContainer, monthNavigationContainerStyle]}
+      >
+        <TouchableOpacity
+          style={styles.monthYearTouchable}
+          onPress={() => setViewMode('year')}
+        >
+          <Text
+            style={[
+              styles.monthNavigationText,
+              { fontFamily, color: headerTextColor },
+              monthNavigationTextStyle,
+            ]}
+          >
+            {visibleDate.toLocaleString('default', {
+              month: 'long',
+              year: 'numeric',
+            })}
+          </Text>
+          <Text style={[styles.dropdownIcon, { color: headerTextColor }]}>
+            ▼
+          </Text>
+        </TouchableOpacity>
+        <View style={styles.arrowButtonWrapper}>
+          <TouchableOpacity
+            onPress={() => changeMonth(-1)}
+            style={[styles.arrowButton, arrowButtonStyle]}
+          >
+            <Text
+              style={[
+                styles.arrowIcon,
+                { fontFamily, color: arrowColor },
+                arrowIconStyle,
+              ]}
+            >
+              ‹
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => changeMonth(1)}
+            style={[styles.arrowButton, arrowButtonStyle]}
+          >
+            <Text
+              style={[
+                styles.arrowIcon,
+                { fontFamily, color: arrowColor },
+                arrowIconStyle,
+              ]}
+            >
+              ›
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View style={[styles.dayOfWeekContainer, dayOfWeekContainerStyle]}>
+        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => (
+          <Text
+            key={day + index}
+            style={[
+              styles.dayOfWeekText,
+              { fontFamily, color: textColor, width: ITEM_SIZE },
+              dayOfWeekTextStyle,
+              (index === 5 || index === 6) && weekendTextStyle,
+            ]}
+          >
+            {day}
+          </Text>
+        ))}
+      </View>
+      <FlatList
+        data={monthData}
+        renderItem={renderDay}
+        numColumns={7}
+        keyExtractor={(item) => item.key}
+        contentContainerStyle={styles.grid}
+      />
+    </>
   );
 
   return (
@@ -315,7 +390,7 @@ export const GranularDatePicker = ({
         <Text
           style={[
             styles.selectedDateHeaderText,
-            { color: primaryColor, fontFamily },
+            { fontFamily, color: primaryColor },
             selectedDateHeaderText,
           ]}
         >
@@ -326,90 +401,7 @@ export const GranularDatePicker = ({
           })}
         </Text>
       </View>
-
-      {viewMode === 'calendar' ? (
-        <>
-          <View
-            style={[
-              styles.monthNavigationContainer,
-              monthNavigationContainerStyle,
-            ]}
-          >
-            <TouchableOpacity onPress={() => setViewMode('year')}>
-              <Text
-                style={[
-                  styles.monthNavigationText,
-                  { color: headerTextColor, fontFamily },
-                  monthNavigationTextStyle,
-                ]}
-              >
-                {visibleDate.toLocaleString('default', {
-                  month: 'long',
-                  year: 'numeric',
-                })}{' '}
-                ▼
-              </Text>
-            </TouchableOpacity>
-            <View style={styles.arrowButtonWrapper}>
-              <TouchableOpacity
-                onPress={() => changeMonth(-1)}
-                style={[styles.arrowButton, arrowButtonStyle]}
-              >
-                <Text
-                  style={[
-                    styles.arrowIcon,
-                    { color: arrowColor, fontFamily },
-                    arrowIconStyle,
-                  ]}
-                >
-                  ‹
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => changeMonth(1)}
-                style={[styles.arrowButton, arrowButtonStyle]}
-              >
-                <Text
-                  style={[
-                    styles.arrowIcon,
-                    { color: arrowColor, fontFamily },
-                    arrowIconStyle,
-                  ]}
-                >
-                  ›
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={[styles.dayOfWeekContainer, dayOfWeekContainerStyle]}>
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-              <Text
-                key={day + i}
-                style={[
-                  styles.dayOfWeekText,
-                  { width: ITEM_SIZE, color: textColor, fontFamily },
-                  dayOfWeekTextStyle,
-                  (i === 5 || i === 6) && weekendTextStyle,
-                ]}
-              >
-                {day}
-              </Text>
-            ))}
-          </View>
-
-          <FlatList
-            data={monthData}
-            renderItem={renderDay}
-            numColumns={7}
-            keyExtractor={(item) => item.key}
-            contentContainerStyle={styles.grid}
-          />
-        </>
-      ) : (
-        renderYearSelector()
-      )}
-
+      {viewMode === 'calendar' ? renderCalendarView() : renderYearSelector()}
       <View style={styles.actionsContainer}>
         <TouchableOpacity
           onPress={onCancel}
@@ -426,7 +418,7 @@ export const GranularDatePicker = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => onConfirm?.(selectedDate)}
+          onPress={handleConfirmPress}
           style={[styles.actionButton, okButtonStyle]}
         >
           <Text
@@ -444,7 +436,7 @@ export const GranularDatePicker = ({
   );
 };
 
-// --- Styles ---
+// --- Default Styles ---
 const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
@@ -473,7 +465,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
   },
+  monthYearTouchable: { flexDirection: 'row', alignItems: 'center' },
   monthNavigationText: { fontSize: 18, fontWeight: '600' },
+  dropdownIcon: { fontSize: 10, marginLeft: 8 },
   arrowButtonWrapper: { flexDirection: 'row' },
   arrowButton: { padding: 5 },
   arrowIcon: { fontSize: 22, fontWeight: 'bold' },
@@ -484,8 +478,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   dayOfWeekText: { fontSize: 12, fontWeight: 'bold', textAlign: 'center' },
-  grid: { paddingHorizontal: 10, paddingBottom: 10 },
-  dayCell: { justifyContent: 'center', alignItems: 'center', margin: 2 },
+  grid: {
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    backgroundColor: '#F8F9FA',
+  },
+  dayCell: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 2,
+    marginHorizontal: 1,
+  },
   dayText: { fontSize: 16, fontWeight: '500' },
   weekendText: { color: '#757575' },
   todayContainer: { borderWidth: 2 },
@@ -507,14 +510,19 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   actionButtonText: { fontSize: 14, fontWeight: 'bold' },
-  yearSelectorContainer: { flex: 1, padding: 10 },
+  yearSelectorContainer: { flex: 1, padding: 10, backgroundColor: '#F8F9FA' },
+  yearButtonWrapper: {
+    flex: 1 / 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   yearButton: {
     margin: 5,
     paddingVertical: 15,
+    width: '85%',
     borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   yearButtonText: { fontSize: 16, fontWeight: '500' },
 });
-
-export * from './GranularTimePicker';
